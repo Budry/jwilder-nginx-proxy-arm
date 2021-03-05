@@ -12,9 +12,24 @@ RUN apt-get update \
  && rm -r /var/lib/apt/lists/*
 
 
-# Configure Nginx and apply fix for very long server names
+# Download all the configurations from nginx-ultimate-bad-bot-blocker
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/conf.d/globalblacklist.conf -O /etc/nginx/conf.d/globalblacklist.conf
+RUN mkdir /etc/nginx/bots.d
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/blockbots.conf -O /etc/nginx/bots.d/blockbots.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/ddos.conf -O /etc/nginx/bots.d/ddos.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/whitelist-ips.conf -O /etc/nginx/bots.d/whitelist-ips.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/whitelist-domains.conf -O /etc/nginx/bots.d/whitelist-domains.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/blacklist-user-agents.conf -O /etc/nginx/bots.d/blacklist-user-agents.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/custom-bad-referrers.conf -O /etc/nginx/bots.d/custom-bad-referrers.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/blacklist-ips.conf -O /etc/nginx/bots.d/blacklist-ips.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/bots.d/bad-referrer-words.conf -O /etc/nginx/bots.d/bad-referrer-words.conf
+RUN wget --quiet https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/conf.d/botblocker-nginx-settings.conf -O /etc/nginx/conf.d/botblocker-nginx-settings.conf
+
+
+# Configure Nginx and apply config for using the blockbots and ddos conf files 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
- && sed -i 's/^http {/&\n    server_names_hash_bucket_size 128;/g' /etc/nginx/nginx.conf
+ && sed -i 's/server_name .*;$/&\n        incliude \/etc\/nginx\/bots.d\/blockbots.conf;/' /etc/nginx/conf.d/default.conf \
+ && sed -i 's/server_name .*;$/&\n        incliude \/etc\/nginx\/bots.d\/ddos.conf;/' /etc/nginx/conf.d/default.conf
 
 
 # Install Forego
